@@ -12,7 +12,7 @@ public class Main {
         Fork fork4 = new Fork();
 
         Philosopher heraclitus = new Philosopher("Heraclitus", fork1, fork2);
-        Philosopher socrates = new Philosopher("Socrates", fork2, fork1);
+        Philosopher socrates = new Philosopher("Socrates", fork2, fork3);
         Philosopher diogenes = new Philosopher("Diogenes", fork3, fork4);
         Philosopher plato = new Philosopher("Plato", fork4, fork1);
 
