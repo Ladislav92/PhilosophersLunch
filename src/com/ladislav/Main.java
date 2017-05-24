@@ -26,38 +26,17 @@ public class Main {
 
 class Philosopher extends Thread {
 
-    private static final Object lock = new Object();
     private final Fork left;
     private final Fork right;
+    private final String name;
+    private boolean ate;
 
     public Philosopher(String name, Fork left, Fork right) {
-        super(name);
+        super();
+        this.name = name;
         this.left = left;
         this.right = right;
     }
-
-    @Override
-    public void run() {
-
-        synchronized (lock) {
-            synchronized (left) {
-                try {
-                    Thread.sleep(10);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-
-                synchronized (right) {
-                    left.eat();
-                    right.eat();
-                    System.out.println(Thread.currentThread().getName() + " ate his macaroni.");
-                }
-            }
-        }
-    }
-}
-
-class Fork {
 
     public void eat() {
         try {
@@ -68,6 +47,45 @@ class Fork {
         }
     }
 
+    @Override
+    public void run() {
+
+        while (true) {
+
+            if (!left.isTaken()) {
+                left.take();
+                if (!right.isTaken()) {
+                    right.take();
+                    eat();
+                    System.out.println(name + " ate.");
+                    ate = true;
+                    right.putDown();
+                }
+                left.putDown();
+            }
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
 }
 
+class Fork {
 
+    private boolean isTaken = false;
+
+    public synchronized void take() {
+        isTaken = true;
+    }
+
+    public synchronized void putDown() {
+        isTaken = false;
+    }
+
+    public synchronized boolean isTaken() {
+        return isTaken;
+    }
+
+}
