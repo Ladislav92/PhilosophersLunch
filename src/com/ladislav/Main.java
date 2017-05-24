@@ -50,7 +50,7 @@ class Philosopher extends Thread {
     @Override
     public void run() {
 
-        while (true) {
+        while (!ate) {
 
             if (!left.isTaken()) {
                 left.take();
