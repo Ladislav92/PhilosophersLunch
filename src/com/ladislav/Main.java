@@ -6,15 +6,15 @@ package com.ladislav;
 public class Main {
 
     public static void main(String[] args) {
-        Fork fork1 = new Fork();
-        Fork fork2 = new Fork();
-        Fork fork3 = new Fork();
-        Fork fork4 = new Fork();
+        Fork fork1 = new Fork(1);
+        Fork fork2 = new Fork(2);
+        Fork fork3 = new Fork(3);
+        Fork fork4 = new Fork(4);
 
-        Philosopher heraclitus = new Philosopher("Heraclitus", fork1, fork2);
-        Philosopher socrates = new Philosopher("Socrates", fork2, fork3);
-        Philosopher diogenes = new Philosopher("Diogenes", fork3, fork4);
-        Philosopher plato = new Philosopher("Plato", fork4, fork1);
+        Philosopher heraclitus = new Philosopher(4, "Heraclitus", fork1, fork2);
+        Philosopher socrates = new Philosopher(3, "Socrates", fork2, fork3);
+        Philosopher diogenes = new Philosopher(2, "Diogenes", fork3, fork4);
+        Philosopher plato = new Philosopher(1, "Plato", fork4, fork1);
 
         heraclitus.start();
         socrates.start();
@@ -29,13 +29,14 @@ class Philosopher extends Thread {
     private final Fork left;
     private final Fork right;
     private final String name;
-    private boolean ate;
+    private final int number;
 
-    public Philosopher(String name, Fork left, Fork right) {
+    public Philosopher(int number, String name, Fork left, Fork right) {
         super();
         this.name = name;
         this.left = left;
         this.right = right;
+        this.number = number;
     }
 
     public void eat() {
@@ -50,21 +51,30 @@ class Philosopher extends Thread {
     @Override
     public void run() {
 
-        while (!ate) {
+        while (true) {
 
-            if (!left.isTaken()) {
-                left.take();
-                if (!right.isTaken()) {
-                    right.take();
-                    eat();
-                    System.out.println(name + " ate.");
-                    ate = true;
-                    right.putDown();
+            if (this.number == left.getNumber()) {
+                if (!left.isChecked()) {
+                    synchronized (left) {
+                        synchronized (right) {
+                            eat();
+                            right.check();
+                        }
+                    }
                 }
-                left.putDown();
+            } else {
+                if (left.isChecked()) {
+                    synchronized (left) {
+                        synchronized (right) {
+                            eat();
+                            right.checkOut();
+                        }
+                    }
+                }
             }
+            System.out.println(name + " ate.");
             try {
-                Thread.sleep(500);
+                Thread.sleep(1000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -74,18 +84,27 @@ class Philosopher extends Thread {
 
 class Fork {
 
-    private boolean isTaken = false;
+    private final int number;
+    private boolean checked;
 
-    public synchronized void take() {
-        isTaken = true;
+    public Fork(int number) {
+        this.number = number;
     }
 
-    public synchronized void putDown() {
-        isTaken = false;
+    public synchronized void check() {
+        checked = true;
     }
 
-    public synchronized boolean isTaken() {
-        return isTaken;
+    public synchronized void checkOut() {
+        checked = false;
+    }
+
+    public synchronized boolean isChecked() {
+        return checked;
+    }
+
+    public int getNumber() {
+        return number;
     }
 
 }
